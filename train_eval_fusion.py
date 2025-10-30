@@ -480,6 +480,18 @@ def main():
             ema.apply_to(model)
         state = torch.load(outdir/"model_best.pt", map_location=args.device)
         model.load_state_dict(state['model'])
+        
+        # === [AFFINE CALIBRATION – learn on validation set] =======================
+        try:
+            dl_va_cal = DataLoader(ds_va, batch_size=256, shuffle=False)
+            a_cal, b_cal = _fit_affine_on_loader(model, dl_va_cal, args.device)
+            (outdir / "affine_cal.json").write_text(
+                json.dumps({"a": a_cal, "b": b_cal}, indent=2), encoding="utf-8"
+            )
+            print(f"[CAL] Affine calibration learned: a={a_cal:.4f}, b={b_cal:.4f}")
+        except Exception as e:
+            print(f"[CAL][WARN] Calibration learning failed: {e}")
+        # ============================================================================
 
     # Ensure scaler from state for deterministic eval
     if 'scaler_mean' in state:
