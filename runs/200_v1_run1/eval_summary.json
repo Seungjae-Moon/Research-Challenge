@@ -1,0 +1,44 @@
+{
+  "tag": "200_v1_run1",
+  "feat_cols": [
+    "op1",
+    "op2",
+    "op3",
+    "sensor1",
+    "sensor2",
+    "sensor3",
+    "sensor4",
+    "sensor5",
+    "sensor6",
+    "sensor7",
+    "sensor8",
+    "sensor9",
+    "sensor10",
+    "sensor11",
+    "sensor12",
+    "sensor13",
+    "sensor14",
+    "sensor15",
+    "sensor16",
+    "sensor17",
+    "sensor18",
+    "sensor19",
+    "sensor20",
+    "sensor21"
+  ],
+  "seq_len": 20,
+  "use_vib": false,
+  "synthetic_metrics": {
+    "MAE": 28.47940444946289,
+    "RMSE": 36.13811492919922,
+    "STD_abs": 22.246055603027344
+  },
+  "fd004_metrics": {
+    "MAE": 45.39499282836914,
+    "RMSE": 60.936744689941406,
+    "STD_abs": 40.651954650878906
+  },
+  "paths": {
+    "ckpt": "runs\\200_v1_run1\\model_best.pt"
+  }
+}
