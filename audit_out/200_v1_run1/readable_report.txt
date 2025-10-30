@@ -1,0 +1,37 @@
+=== GEN vs FD004 Audit — PLUS ===
+GEN train : C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\training\200\v1\train_1.txt
+GEN test  : C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\test\200\v1\test_1.txt
+GEN RUL   : C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\rul\200\v1\RUL_1.txt
+FD004 train: C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\cmapss_raw\train_FD004.txt
+FD004 test : C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\cmapss_raw\test_FD004.txt
+FD004 RUL  : C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\cmapss_raw\RUL_FD004.txt
+
+[Validity — GEN only]
+train units=160, rows=26320, cols_ok=True, continuity_warns=0
+test  units=40, rows=3088, cols_ok=True, continuity_warns=0
+rul   len>0=True, all_positive=True
+
+[Similarity — TRAIN]
+corr_mse_upper=0.001144591083322132, corr_frobenius=0.6933456966011222
+per-sensor metrics -> train_similarity_sensor.csv (wasserstein / sym_kl / mean_diff / std_ratio / ks_p)
+
+[Similarity — TEST]
+corr_mse_upper=0.010927606842046533, corr_frobenius=2.1423339780854764
+per-sensor metrics -> test_similarity_sensor.csv (wasserstein / sym_kl / mean_diff / std_ratio / ks_p)
+
+[Similarity — RUL]
+gen_len: 40
+ref_len: 248
+gen_pos_all: True
+ref_pos_all: True
+wd: 16.50161290322581
+sym_kl: 11.50285681543565
+ks_p: 0.10755878002880015
+gen_mean: 96.775
+gen_std: 40.00842879944175
+gen_min: 19.0
+gen_max: 173.0
+ref_mean: 86.5524193548387
+ref_std: 54.52379321364928
+ref_min: 6.0
+ref_max: 195.0
