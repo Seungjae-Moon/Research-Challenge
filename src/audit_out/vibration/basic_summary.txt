@@ -1,0 +1,6 @@
+=== Vibration Usability Checker ===
+timestamp: 2025-10-28T21:44:48
+gen_train: C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\training\data200\v1\train_1.txt
+vib_train: C:\Users\sjmoo\OneDrive\바탕 화면\turbo jet engine\data\training\data200\v1\train_1_vib.csv
+rows: 28493, units: 160
+features present: ['fe_RMS', 'fe_Kurtosis', 'fe_Crest', 'fe_Entropy']

@@ -1,0 +1,27 @@
+USABILITY: GOOD
+
+[+2] All 4 vibration features present
+[+1] fe_Kurtosis: finite>99.5% OK
+[+1] fe_Kurtosis: non-negative OK
+[+1] fe_Kurtosis: |z|>6 very rare OK
+[+1] fe_RMS: finite>99.5% OK
+[+1] fe_RMS: non-negative OK
+[+1] fe_RMS: |z|>6 very rare OK
+[+1] fe_Crest: finite>99.5% OK
+[+1] fe_Crest: non-negative OK
+[+1] fe_Crest: |z|>6 very rare OK
+[+1] fe_Entropy: finite>99.5% OK
+[+1] fe_Entropy: non-negative OK
+[+1] fe_Entropy: |z|>6 very rare OK
+[+1] Crest mean in [3, 8]
+[+1] Kurtosis mean in [3, 8]
+[+1] Entropy mean in [0.55, 0.90]
+[+1] RMS std in [0.002, 0.02] (not too flat/not blowing up)
+[+2] rho(op3, RMS) >= 0.20 (0.644)
+[  ] rho(rotor_proxy, RMS) too weak (nan)
+[+1] rho(sensor8, RMS) >= 0.15 (0.406)
+[+2] Positive RMS slope ratio >= 0.50 (1.000)
+
+Guidance:
+- Data looks physically consistent and statistically clean.
+- OK to use for training and internal validation of vib-related submodules.
