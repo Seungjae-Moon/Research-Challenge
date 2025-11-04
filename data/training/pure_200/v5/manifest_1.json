@@ -1,0 +1,40 @@
+{
+  "set_id": "pure_200",
+  "version_dir": "v5",
+  "run_index": 1,
+  "units_total": 200,
+  "train_units": 160,
+  "test_units": 40,
+  "seed": 3333,
+  "min_cycles": 150,
+  "max_cycles": 450,
+  "calib_mode": "none",
+  "cov_blend_lam": 0.85,
+  "fd004_train_path": "data\\cmapss_raw\\train_FD004.txt",
+  "fd004_rul_path": "data\\cmapss_raw\\RUL_FD004.txt",
+  "files": {
+    "train": {
+      "path": "data\\training\\pure_200\\v5\\train_1.txt",
+      "sha1": "500072924eca3e9c0ea353aa96a8f78fbcf84d20"
+    },
+    "test": {
+      "path": "data\\test\\pure_200\\v5\\test_1.txt",
+      "sha1": "1c9b94f285c462eabc4a607285b40bba870e0d50"
+    },
+    "RUL": {
+      "path": "data\\rul\\pure_200\\v5\\RUL_1.txt",
+      "sha1": "445162ee0484610e24cf39700369bfab26dae2cd"
+    },
+    "pairs_csv": {
+      "path": "data\\training\\pure_200\\v5\\test_rul_pairs_1.csv",
+      "sha1": "42d6081458c52394a51606eede9926b07e6bbdc9"
+    },
+    "train_vib": {
+      "path": "data\\training\\pure_200\\v5\\train_1_vib.csv"
+    },
+    "test_vib": {
+      "path": "data\\test\\pure_200\\v5\\test_1_vib.csv"
+    }
+  },
+  "timestamp": "2025-10-31T19:58:30"
+}

@@ -1,0 +1,40 @@
+{
+  "set_id": "extreme_iter_3",
+  "version_dir": "v1",
+  "run_index": 1,
+  "units_total": 200,
+  "train_units": 160,
+  "test_units": 40,
+  "seed": 42,
+  "min_cycles": 150,
+  "max_cycles": 380,
+  "calib_mode": "cov",
+  "cov_blend_lam": 0.9647928959853477,
+  "fd004_train_path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\cmapss_raw\\train_FD004.txt",
+  "fd004_rul_path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\cmapss_raw\\RUL_FD004.txt",
+  "files": {
+    "train": {
+      "path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\training\\extreme_iter_3\\v1\\train_1.txt",
+      "sha1": "8b01287b89160b59b49bed865f7ad8b9117831aa"
+    },
+    "test": {
+      "path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\test\\extreme_iter_3\\v1\\test_1.txt",
+      "sha1": "d0689c8c3ee0ecc78b91d0ce1b5d5755c99d3663"
+    },
+    "RUL": {
+      "path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\rul\\extreme_iter_3\\v1\\RUL_1.txt",
+      "sha1": "0365c82ddc1440aebfb5356a97b0f7c2e525ee4b"
+    },
+    "pairs_csv": {
+      "path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\training\\extreme_iter_3\\v1\\test_rul_pairs_1.csv",
+      "sha1": "f584de9a6fc5d1b3c63e8e6216c9cb2396c0ae2e"
+    },
+    "train_vib": {
+      "path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\training\\extreme_iter_3\\v1\\train_1_vib.csv"
+    },
+    "test_vib": {
+      "path": "C:\\Users\\sjmoo\\Documents\\Research-Challenge\\data\\test\\extreme_iter_3\\v1\\test_1_vib.csv"
+    }
+  },
+  "timestamp": "2025-10-31T18:32:38"
+}

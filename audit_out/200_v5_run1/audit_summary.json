@@ -1,0 +1,59 @@
+{
+  "paths": {
+    "gen_train": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\training\\200\\v5\\train_1.txt",
+    "gen_test": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\test\\200\\v5\\test_1.txt",
+    "gen_rul": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\rul\\200\\v5\\RUL_1.txt",
+    "fd_train": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\cmapss_raw\\train_FD004.txt",
+    "fd_test": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\cmapss_raw\\test_FD004.txt",
+    "fd_rul": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\cmapss_raw\\RUL_FD004.txt"
+  },
+  "validity_gen": {
+    "train": {
+      "columns_ok": true,
+      "units": 160,
+      "rows": 29325,
+      "continuity_warnings": [],
+      "continuity_warning_count": 0
+    },
+    "test": {
+      "columns_ok": true,
+      "units": 40,
+      "rows": 3558,
+      "continuity_warnings": [],
+      "continuity_warning_count": 0
+    },
+    "rul": {
+      "len_gt_zero": true,
+      "all_positive": true
+    }
+  },
+  "train_global": {
+    "corr_mse_upper": 0.0008693706390323841,
+    "corr_frobenius": 0.6042645682096555
+  },
+  "test_global": {
+    "corr_mse_upper": 0.0020491644715238803,
+    "corr_frobenius": 0.9277117429676258
+  },
+  "rul_similarity": {
+    "gen_len": 40,
+    "ref_len": 248,
+    "gen_pos_all": true,
+    "ref_pos_all": true,
+    "wd": 14.758064516129032,
+    "sym_kl": 12.354735367518733,
+    "ks_p": 0.33754269948832766,
+    "gen_mean": 91.375,
+    "gen_std": 41.98314393896674,
+    "gen_min": 3.0,
+    "gen_max": 184.0,
+    "ref_mean": 86.5524193548387,
+    "ref_std": 54.52379321364928,
+    "ref_min": 6.0,
+    "ref_max": 195.0
+  },
+  "rul_deltas": {
+    "mean_diff": 4.822580645161295,
+    "std_ratio": 0.7699967567270443
+  }
+}

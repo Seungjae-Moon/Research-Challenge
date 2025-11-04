@@ -45,7 +45,7 @@ class DTConfig:
     # core
     units: int = 200
     min_cycles: int = 150
-    max_cycles: int = 380
+    max_cycles: int = 450  # 더 긴 수명 허용 → 높은 RUL 생성 가능
     seed: int = 7
     train_split: float = 0.8
     set_id: Optional[str] = None
@@ -80,6 +80,13 @@ class DTConfig:
     rul_root: Path   = DEFAULT_RUL_ROOT
     # features
     save_vib: bool = True
+    # extreme knobs (can be toggled via CLI --extreme)
+    extreme: bool = False
+    extreme_sensor14_scale: float = 1.0
+    extreme_sensor14_offset: float = 0.0
+    op3_compress_apply: bool = False
+    op3_compress_low: float = 0.6
+    op3_compress_high: float = 0.85
 
 # ----------------------- 버저닝 -----------------------
 def ensure_common_version_dirs(cfg: DTConfig) -> tuple[Path, Path, Path]:
@@ -187,7 +194,7 @@ def brayton_light(N1: float, thr: float, Tamb: float, pamb: float, hc: float, ht
     return PR_c, T_exh, mdot_like
 
 # ----------------------- Operation sampler -----------------------
-def sample_ops(T: int, rng: np.random.Generator) -> np.ndarray:
+def sample_ops(T: int, rng: np.random.Generator, cfg: Optional[DTConfig] = None) -> np.ndarray:
     if T < 8:
         base = rng.uniform(0.45, 0.7, size=3)
         op = base + rng.normal(0, np.array([0.02,0.015,0.02]), size=(T,3))
@@ -215,6 +222,16 @@ def sample_ops(T: int, rng: np.random.Generator) -> np.ndarray:
     phi=0.85; eps=rng.normal(0,[0.01,0.008,0.01], size=(T,3)); ar=np.zeros_like(op); ar[0]=eps[0]
     for tt in range(1,T): ar[tt]=phi*ar[tt-1]+eps[tt]
     op = np.clip(op + drift + ar, 0.25, 0.98).astype(np.float32)
+    # optional extreme op3 variance compression
+    try:
+        if cfg is not None and getattr(cfg, "op3_compress_apply", False):
+            op3 = op[:,2]
+            mean_op3 = float(op3.mean())
+            scale = float(rng.uniform(cfg.op3_compress_low, cfg.op3_compress_high))
+            op[:,2] = np.clip(mean_op3 + scale * (op3 - mean_op3), 0.25, 0.98)
+    except Exception:
+        pass
+
     return op
 
 # ----------------------- Health & failure -----------------------
@@ -269,28 +286,28 @@ def gen_sensors(op: np.ndarray, h: Dict[str,np.ndarray], rng: np.random.Generato
         PR_like[t]=max(PR_c,1.03); T_exh_like[t]=max(T_exh/288.15, Tamb_arr[t]/288.15+0.02); mdot_raw[t]=mdot_like
     mdot_max=max(float(mdot_raw.max()),1e-6); flow_like=0.10+0.90*(mdot_raw/mdot_max)
     Tamb_norm=Tamb_arr/288.15
-    # mapping
-    X[:,0]=0.10+cfg.k_texh*T_exh_like+0.05*thr_arr+0.15*(1.0-ht)
-    X[:,1]=0.05+cfg.k_pr*PR_like-0.10*(1.0-hc)
-    X[:,2]=0.05+cfg.k_flow*flow_like-0.10*(1.0-hf)
-    X[:,3]=0.12+0.25*thr_arr+0.55*(1.0-hb)+0.10*(T_exh_like-Tamb_norm)
-    X[:,4]=0.10+0.50*T_exh_like+0.15*thr_arr+0.25*(1.0-ht)
-    X[:,5]=0.08+0.65*PR_like+0.10*(1.0-hc)
-    X[:,6]=0.10+0.75*flow_like+0.10*(1.0-hf)
-    X[:,7]=0.10+0.40*thr_arr+0.45*(1.0-hb)
-    X[:,8]=0.10+0.50*flow_like+0.10*(1.0-hc)+0.10*(1.0-ht)
-    X[:,9]=0.10+0.55*thr_arr+0.30*(1.0-hb)
-    X[:,10]=0.08+0.60*PR_like+0.20*Tamb_norm+0.10*(1.0-hc)
-    X[:,11]=0.10+0.35*thr_arr+0.55*(1.0-ht)
-    X[:,12]=0.10+0.55*thr_arr+0.40*(1.0-hf)
-    X[:,13]=0.10+0.58*flow_like+0.10*(1.0-hb)+0.10*(1.0-ht)
-    X[:,14]=0.10+0.55*PR_like+0.20*(1.0-hc)
-    X[:,15]=0.10+0.45*T_exh_like+0.45*(1.0-ht)
-    X[:,16]=0.10+0.58*thr_arr+0.25*(1.0-hc)+0.20*(1.0-hb)
-    X[:,17]=0.10+0.60*flow_like+0.20*(1.0-hf)
-    X[:,18]=0.10+0.40*thr_arr+0.52*(1.0-hb)
-    X[:,19]=0.10+0.60*T_exh_like+0.35*(1.0-ht)
-    X[:,20]=0.10+0.55*PR_like+0.45*(1.0-hc)
+    # mapping **ITER 3: DOUBLED health degradation coefficients for stronger RUL correlation**
+    X[:,0]=0.10+cfg.k_texh*T_exh_like+0.05*thr_arr+0.30*(1.0-ht)  # 0.15 -> 0.30
+    X[:,1]=0.05+cfg.k_pr*PR_like-0.20*(1.0-hc)  # 0.10 -> 0.20
+    X[:,2]=0.05+cfg.k_flow*flow_like-0.20*(1.0-hf)  # 0.10 -> 0.20
+    X[:,3]=0.12+0.25*thr_arr+0.70*(1.0-hb)+0.10*(T_exh_like-Tamb_norm)  # 0.55 -> 0.70
+    X[:,4]=0.10+0.50*T_exh_like+0.15*thr_arr+0.40*(1.0-ht)  # 0.25 -> 0.40
+    X[:,5]=0.08+0.65*PR_like+0.20*(1.0-hc)  # 0.10 -> 0.20
+    X[:,6]=0.10+0.75*flow_like+0.20*(1.0-hf)  # 0.10 -> 0.20
+    X[:,7]=0.10+0.40*thr_arr+0.60*(1.0-hb)  # 0.45 -> 0.60
+    X[:,8]=0.10+0.50*flow_like+0.20*(1.0-hc)+0.20*(1.0-ht)  # both 0.10 -> 0.20
+    X[:,9]=0.10+0.55*thr_arr+0.45*(1.0-hb)  # 0.30 -> 0.45
+    X[:,10]=0.08+0.60*PR_like+0.20*Tamb_norm+0.20*(1.0-hc)  # 0.10 -> 0.20
+    X[:,11]=0.10+0.35*thr_arr+0.70*(1.0-ht)  # 0.55 -> 0.70
+    X[:,12]=0.10+0.55*thr_arr+0.55*(1.0-hf)  # 0.40 -> 0.55
+    X[:,13]=0.10+0.58*flow_like+0.20*(1.0-hb)+0.20*(1.0-ht)  # both 0.10 -> 0.20
+    X[:,14]=0.10+0.55*PR_like+0.35*(1.0-hc)  # 0.20 -> 0.35
+    X[:,15]=0.10+0.45*T_exh_like+0.60*(1.0-ht)  # 0.45 -> 0.60
+    X[:,16]=0.10+0.58*thr_arr+0.40*(1.0-hc)+0.30*(1.0-hb)  # 0.25->0.40, 0.20->0.30
+    X[:,17]=0.10+0.60*flow_like+0.35*(1.0-hf)  # 0.20 -> 0.35
+    X[:,18]=0.10+0.40*thr_arr+0.67*(1.0-hb)  # 0.52 -> 0.67
+    X[:,19]=0.10+0.60*T_exh_like+0.50*(1.0-ht)  # 0.35 -> 0.50
+    X[:,20]=0.10+0.55*PR_like+0.60*(1.0-hc)  # 0.45 -> 0.60
 
     # within-group correlated noise  **M3: 공분산 1회 샘플링으로 수정**
     h_mean=float(h["turb"].mean())
@@ -307,7 +324,16 @@ def gen_sensors(op: np.ndarray, h: Dict[str,np.ndarray], rng: np.random.Generato
     # (수정점) 그룹 루프 밖에서 한 번만 샘플링
     eps = rng.multivariate_normal(np.zeros(21), cov, size=T).astype(np.float32)
 
-    X = np.clip(X + eps, 0.0, 1.8).astype(np.float32)
+    X = X + eps
+    # EXTREME: optional large offset/scale for problematic sensor (sensor14 -> index 13)
+    try:
+        if getattr(cfg, "extreme", False) and getattr(cfg, "extreme_sensor14_scale", 1.0) != 1.0:
+            i = 13
+            X[:, i] = X[:, i] * float(cfg.extreme_sensor14_scale) + float(cfg.extreme_sensor14_offset)
+    except Exception:
+        pass
+
+    X = np.clip(X, 0.0, 1.8).astype(np.float32)
     return X
 
 # ----------------------- Vibration features (physics-informed v2.1, P0) -----------------------
@@ -353,23 +379,34 @@ def synthesize_vibration_features(df_with_rul: pd.DataFrame, rng: np.random.Gene
     rotor = _rotor_proxy(op3, s8)
     rotor_norm = ((rotor - 10.0) / (500.0 - 10.0)).clip(0.0, 1.0)
 
-    # amplitude model  **V2: late-stage reboost로 RMS std 확장**
-    A0, a1, a2, a3 = 0.12, 0.10, 0.08, 0.18
-    stage_gain = np.where(
-        progress < 0.4, 0.9,
-        np.where(progress < 0.8, 1.05, 1.22 + 0.08 * rng.uniform(-1, 1, size=len(progress)))
-    )
-    drift = 0.020 * progress
-    A = (A0 + a1 * op3 + a2 * rotor_norm + a3 * health + drift) * stage_gain
-    A = np.clip(A, 0.05, 0.70)
+    # amplitude model  **V4: Health-based (not RUL) for train/test consistency**
+    # Physics: vibration amplitude ∝ bearing degradation + unbalance
+    # Key insight: Use HEALTH (0-1 degradation) instead of RUL to avoid train/test distribution mismatch
+    #              Health is computed consistently for both train (sliding) and test (last-window)
+    
+    # Degradation = inverse of health (0=healthy, 1=failed)
+    # h_brg and h_tur already computed above from actual health indicators
+    degradation = health  # Use existing health variable (already 0-1 scale, 0=healthy, 1=failed)
+    
+    # Base amplitude with STRONGER degradation coupling for higher RUL correlation
+    # Target: Increase |r(RUL, fe_RMS)| from 0.38 to >0.6
+    A0, a1, a2, a_deg = 0.12, 0.10, 0.08, 0.60  # a_deg DOUBLED from 0.35 to 0.60
+    
+    # Stronger monotonic gain
+    stage_gain = 0.80 + 0.50 * degradation  # Increased from 0.30 to 0.50
+    
+    # Amplified degradation drift
+    drift = 0.050 * degradation  # DOUBLED from 0.025
+    A = (A0 + a1 * op3 + a2 * rotor_norm + a_deg * degradation + drift) * stage_gain
+    A = np.clip(A, 0.08, 0.90)  # Wider range for better separation
 
-    # heteroskedastic noise
-    base_noise = 0.12
-    noise_std = base_noise + 0.10 * op3 + 0.10 * health
+    # heteroskedastic noise (also degradation-dependent)
+    base_noise = 0.10
+    noise_std = base_noise + 0.08 * op3 + 0.15 * degradation
     noise_std = np.clip(noise_std, 0.05, 0.35)
 
-    # sparse impulses
-    p_imp = np.clip(0.002 + 0.02 * health, 0.0, 0.07)
+    # sparse impulses (more frequent as degradation increases)
+    p_imp = np.clip(0.002 + 0.03 * degradation, 0.0, 0.08)
 
     # output frame (+ fe_RMS_norm 추가)
     cols = ["unit", "cycle"]
@@ -390,22 +427,28 @@ def synthesize_vibration_features(df_with_rul: pd.DataFrame, rng: np.random.Gene
         s += 0.45 * amp * np.sin(2*np.pi*(2*fr)*t + rng.uniform(0, 2*np.pi))
         s += 0.20 * amp * np.sin(2*np.pi*(3*fr)*t + rng.uniform(0, 2*np.pi))
 
-        # weak AM
-        am_depth = 0.06 * (health[i] + 0.1)
+        # Get degradation for this sample (using health-based degradation)
+        deg_i = degradation[i]
+        
+        # AM modulation (increases with degradation)
+        am_depth = 0.04 + 0.10 * deg_i  # Grows from 0.04 to 0.14
         s *= (1.0 + am_depth * np.sin(2*np.pi*0.5*t + rng.uniform(0, 2*np.pi)))
 
-        # light BPF injection (bearing-like; scaled with health & late stage)
+        # BPF injection (bearing-like; STRONGLY scaled with degradation)
+        # Physics: bearing faults generate harmonics at Ball Pass Frequency
         f_bpf = 1.5 * fr
-        bpf_gain = 0.05 * (0.5*health[i] + 0.5*(stage_gain[i]-0.9)/0.4)
+        bpf_gain = 0.06 * (0.3 + 0.7 * deg_i)  # Grows from 0.018 to 0.06
         s += bpf_gain * amp * np.sin(2*np.pi*f_bpf*t + rng.uniform(0, 2*np.pi))
         s += 0.5*bpf_gain * amp * np.sin(2*np.pi*(2*f_bpf)*t + rng.uniform(0, 2*np.pi))
+        s += 0.25*bpf_gain * amp * np.sin(2*np.pi*(3*f_bpf)*t + rng.uniform(0, 2*np.pi))
 
-        # noise + impulses
+        # noise + impulses (both grow with degradation)
         s += noise_std[i] * rng.standard_normal(N)
         if rng.random() < p_imp[i]:
             k_spike = rng.integers(3, 8)
             idxs = rng.integers(0, N, size=k_spike)
-            s[idxs] += rng.uniform(1.5, 3.0) * amp
+            spike_amp = rng.uniform(1.5, 3.5) * amp * (1.0 + 0.5 * deg_i)
+            s[idxs] += spike_amp
 
         # window & features
         sw = s * w
@@ -425,11 +468,30 @@ def synthesize_vibration_features(df_with_rul: pd.DataFrame, rng: np.random.Gene
         denom = 0.25 + 0.75 * float(op3[i])  # [0.25, 1.0]
         rms_norm = float(rms / denom)
 
-        out.at[idx, "fe_RMS"] = rms
-        out.at[idx, "fe_RMS_norm"] = rms_norm
-        out.at[idx, "fe_Kurtosis"] = kurt
-        out.at[idx, "fe_Crest"] = crest
-        out.at[idx, "fe_Entropy"] = H
+        # **V5: Scale vibration features to sensor-comparable range**
+        # Goal: Make vibration features have similar magnitude to sensors for better learning
+        # Original range: RMS ~0.15-0.20, Kurtosis ~5, Crest ~4.5, Entropy ~0.6
+        # Target: Scale to ~0.5-1.5 range like sensors
+        
+        # RMS: scale by 5x to match sensor range
+        rms_scaled = rms * 5.0
+        rms_norm_scaled = rms_norm * 5.0
+        
+        # Kurtosis: normalize to ~1.0 baseline (normal kurtosis=3, we have ~5)
+        # Scale to 0.5-2.0 range
+        kurt_scaled = (kurt - 3.0) / 5.0 + 1.0  # Maps 3->1.0, 8->2.0
+        
+        # Crest: normalize to ~1.0 baseline
+        crest_scaled = crest / 5.0  # Maps 4.5->0.9, useful range
+        
+        # Entropy: scale by 2x
+        entropy_scaled = H * 2.0
+
+        out.at[idx, "fe_RMS"] = rms_scaled
+        out.at[idx, "fe_RMS_norm"] = rms_norm_scaled
+        out.at[idx, "fe_Kurtosis"] = kurt_scaled
+        out.at[idx, "fe_Crest"] = crest_scaled
+        out.at[idx, "fe_Entropy"] = entropy_scaled
 
     return out.reset_index(drop=True)
 
@@ -453,7 +515,7 @@ def sha1(path: Path) -> str:
 # ----------------------- 시뮬레이션 -----------------------
 def simulate_unit(uid:int, cfg:DTConfig, rng:np.random.Generator) -> Tuple[pd.DataFrame, Dict]:
     T = rng.integers(cfg.min_cycles, cfg.max_cycles+1)
-    op = sample_ops(T, rng)
+    op = sample_ops(T, rng, cfg)
     alpha={"fan":float(rng.uniform(0.0007,0.0011)), "comp":float(rng.uniform(0.0010,0.0015)),
            "turb":float(rng.uniform(0.0012,0.0018)), "brg":float(rng.uniform(0.0009,0.0013))}
     for k in rng.choice(list(alpha.keys()), size=2, replace=False): alpha[k]*=rng.uniform(1.2,1.6)
@@ -464,7 +526,7 @@ def simulate_unit(uid:int, cfg:DTConfig, rng:np.random.Generator) -> Tuple[pd.Da
     if fail_t is None:
         extra=0
         while fail_t is None and extra<1500:
-            op = np.vstack([op, sample_ops(1, rng)])
+            op = np.vstack([op, sample_ops(1, rng, cfg)])
             h = degrade_health(op, alpha, cfg, rng)
             fail_t = hazard_fail_time(op, h, cfg, rng)
             extra += 1
@@ -577,6 +639,15 @@ def main():
     ap.add_argument("--rul-root",   type=str, default=str(DEFAULT_RUL_ROOT))
 
     ap.add_argument("--no-vib", action="store_true", help="진동 피처 저장 끔")
+    ap.add_argument("--extreme", action="store_true", help="Enable EXTREME recalibration adjustments")
+    # fine-grained knobs (override EXTREME defaults)
+    ap.add_argument("--sensor14-scale", type=float, default=None, help="Scale applied to sensor14 (overrides extreme)")
+    ap.add_argument("--sensor14-offset", type=float, default=None, help="Offset applied to sensor14 (overrides extreme)")
+    ap.add_argument("--op3-compress", action="store_true", help="Apply op3 variance compression")
+    ap.add_argument("--op3-compress-low", type=float, default=None, help="op3 compress lower bound (0-1)")
+    ap.add_argument("--op3-compress-high", type=float, default=None, help="op3 compress upper bound (0-1)")
+    ap.add_argument("--noise-base-override", type=float, default=None, help="Override noise_base")
+    ap.add_argument("--corr-base-override", type=float, default=None, help="Override corr_base")
 
     args = ap.parse_args()
 
@@ -595,6 +666,40 @@ def main():
         rul_root=Path(args.rul_root),
         save_vib=not args.no_vib,
     )
+
+    # enable extreme-mode runtime knobs
+    if getattr(args, "extreme", False):
+        cfg.extreme = True
+        # sensor14 extreme patch - REDUCED to minimize train/test mismatch
+        cfg.extreme_sensor14_scale = 1.0  # DISABLED: caused huge distribution gap
+        cfg.extreme_sensor14_offset = 0.0  # DISABLED
+        # increase cov blend for more aggressive cov-based recalibration
+        cfg.cov_blend_lam = 0.95  # slightly reduced from 0.98 for better generalization
+        # compress op3 variance to reduce unrealistic spread
+        cfg.op3_compress_apply = True
+        cfg.op3_compress_low = 0.70  # relaxed from 0.60
+        cfg.op3_compress_high = 0.90  # relaxed from 0.85
+        # boost noise/correlation to match extreme realism - MODERATED
+        cfg.noise_base = max(cfg.noise_base, 0.020)  # reduced from 0.025
+        cfg.corr_base = max(cfg.corr_base, 0.48)  # reduced from 0.55
+
+    # apply explicit overrides when provided
+    if args.sensor14_scale is not None:
+        cfg.extreme_sensor14_scale = float(args.sensor14_scale)
+        cfg.extreme = True
+    if args.sensor14_offset is not None:
+        cfg.extreme_sensor14_offset = float(args.sensor14_offset)
+        cfg.extreme = True
+    if args.op3_compress:
+        cfg.op3_compress_apply = True
+    if args.op3_compress_low is not None:
+        cfg.op3_compress_low = float(args.op3_compress_low)
+    if args.op3_compress_high is not None:
+        cfg.op3_compress_high = float(args.op3_compress_high)
+    if args.noise_base_override is not None:
+        cfg.noise_base = float(args.noise_base_override)
+    if args.corr_base_override is not None:
+        cfg.corr_base = float(args.corr_base_override)
 
     rng = np.random.default_rng(cfg.seed); random.seed(cfg.seed); np.random.seed(cfg.seed)
 
@@ -631,25 +736,32 @@ def main():
             if warp is not None:
                 df_tr[SENSOR_COLS] = warp(df_tr[SENSOR_COLS].to_numpy())
                 df_te[SENSOR_COLS] = warp(df_te[SENSOR_COLS].to_numpy())
-        # --------- M2: 문제 센서 μ/σ 보정(단일 패스) ----------
-        problem_sensors = ["sensor1","sensor3","sensor4","sensor8","sensor9","sensor13","sensor18"]
-        sd_ref = np.sqrt(np.clip(np.diag(cov_ref), 1e-12, None))
-        mu_tr_now = df_tr[SENSOR_COLS].mean().to_numpy()
-        sd_tr_now = df_tr[SENSOR_COLS].std(ddof=0).to_numpy() + 1e-12
-        for s in problem_sensors:
-            k = int(s.replace("sensor","")) - 1
-            a = (sd_ref[k] / sd_tr_now[k])
-            b = (mu_ref[k] - a * mu_tr_now[k])
-            for df_ in (df_tr, df_te):
-                df_[s] = a * df_[s] + b
+        # --------- M2: 문제 센서 μ/σ 보정 - DISABLED for better train/test alignment ----------
+        # Problem: Applying train stats to test causes distribution mismatch
+        # Solution: Let cov warp handle all alignment, or use separate test stats
+        # problem_sensors = ["sensor1","sensor3","sensor4","sensor8","sensor9","sensor13","sensor18"]
+        # sd_ref = np.sqrt(np.clip(np.diag(cov_ref), 1e-12, None))
+        # mu_tr_now = df_tr[SENSOR_COLS].mean().to_numpy()
+        # sd_tr_now = df_tr[SENSOR_COLS].std(ddof=0).to_numpy() + 1e-12
+        # for s in problem_sensors:
+        #     k = int(s.replace("sensor","")) - 1
+        #     a = (sd_ref[k] / sd_tr_now[k])
+        #     b = (mu_ref[k] - a * mu_tr_now[k])
+        #     for df_ in (df_tr, df_te):
+        #         df_[s] = a * df_[s] + b
         # =====================================================
 
-        # TEST 트렁케이션 & RUL (FD004 RUL 분포에서 샘플링)
+        # TEST 트렁케이션 & RUL (EXTENDED 분포: FD004 + uniform 혼합)
         df_te_trunc_rows=[]; rul_vec=[]; te_units=[]
         rng_rul = np.random.default_rng(cfg.seed + 12345)
         fd_rul_vals = rul_ref.astype(int)
+        
+        # EXTENDED RUL pool: FD004 + uniform(20~200) 혼합으로 train/test 분포 갭 축소
+        fd_min, fd_max = int(fd_rul_vals.min()), int(fd_rul_vals.max())
+        uniform_rul_vals = np.arange(max(20, fd_min), min(200, fd_max*2), 5, dtype=int)
+        extended_rul_pool = np.concatenate([fd_rul_vals, uniform_rul_vals])
 
-        # --------- M1: RUL 샘플링 편향 완화(클램프 + 가중 + 재시도 강화) ----------
+        # --------- M1: RUL 샘플링 편향 완화(extended pool + 가중 + 재시도 강화) ----------
         for u in sorted(te_units_all):
             fc = metas[u]["fail_cycle"]
             if fc is None:
@@ -660,15 +772,16 @@ def main():
             max_cut_rul = max(1, fc - (cfg.burn_in + 1))
             weights = None
             try:
-                ranks = np.argsort(np.argsort(fd_rul_vals))
-                weights = np.sqrt((ranks + 1) / len(fd_rul_vals))
+                # 높은 RUL에 더 높은 가중치 (sqrt 대신 linear)
+                ranks = np.argsort(np.argsort(extended_rul_pool))
+                weights = (ranks + 1) / len(extended_rul_pool)
                 weights = weights / weights.sum()
             except Exception:
                 pass
 
             for _ in range(80):
-                sample_rul = int(rng_rul.choice(fd_rul_vals, p=weights) if weights is not None
-                                 else rng_rul.choice(fd_rul_vals))
+                sample_rul = int(rng_rul.choice(extended_rul_pool, p=weights) if weights is not None
+                                 else rng_rul.choice(extended_rul_pool))
                 sample_rul = int(min(sample_rul, max_cut_rul))
                 cut = fc - sample_rul
                 if cut > cfg.burn_in and cut < fc:

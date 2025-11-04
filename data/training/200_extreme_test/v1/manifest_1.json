@@ -1,0 +1,40 @@
+{
+  "set_id": "200_extreme_test",
+  "version_dir": "v1",
+  "run_index": 1,
+  "units_total": 20,
+  "train_units": 16,
+  "test_units": 4,
+  "seed": 42,
+  "min_cycles": 150,
+  "max_cycles": 380,
+  "calib_mode": "cov",
+  "cov_blend_lam": 0.85,
+  "fd004_train_path": "data\\cmapss_raw\\train_FD004.txt",
+  "fd004_rul_path": "data\\cmapss_raw\\RUL_FD004.txt",
+  "files": {
+    "train": {
+      "path": "data\\training\\200_extreme_test\\v1\\train_1.txt",
+      "sha1": "7897cc309d347a16796bbaecc3ed8c5b23116d93"
+    },
+    "test": {
+      "path": "data\\test\\200_extreme_test\\v1\\test_1.txt",
+      "sha1": "8a0f03ebd7fda433137facd4455e5277f29800ed"
+    },
+    "RUL": {
+      "path": "data\\rul\\200_extreme_test\\v1\\RUL_1.txt",
+      "sha1": "4dbd14fb252640c254d623cecf470707897ec6f0"
+    },
+    "pairs_csv": {
+      "path": "data\\training\\200_extreme_test\\v1\\test_rul_pairs_1.csv",
+      "sha1": "2c88b96bdb7e8bd6da160cd04ff9401a0ecb15e8"
+    },
+    "train_vib": {
+      "path": "data\\training\\200_extreme_test\\v1\\train_1_vib.csv"
+    },
+    "test_vib": {
+      "path": "data\\test\\200_extreme_test\\v1\\test_1_vib.csv"
+    }
+  },
+  "timestamp": "2025-10-31T17:33:54"
+}

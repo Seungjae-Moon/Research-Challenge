@@ -1,0 +1,44 @@
+{
+  "tag": "pure_200_v7_run1",
+  "feat_cols": [
+    "op1",
+    "op2",
+    "op3",
+    "sensor1",
+    "sensor2",
+    "sensor3",
+    "sensor4",
+    "sensor5",
+    "sensor6",
+    "sensor7",
+    "sensor8",
+    "sensor9",
+    "sensor10",
+    "sensor11",
+    "sensor12",
+    "sensor13",
+    "sensor14",
+    "sensor15",
+    "sensor16",
+    "sensor17",
+    "sensor18",
+    "sensor19",
+    "sensor20",
+    "sensor21",
+    "fe_RMS",
+    "fe_Kurtosis",
+    "fe_Crest",
+    "fe_Entropy"
+  ],
+  "seq_len": 25,
+  "use_vib": true,
+  "synthetic_metrics": {
+    "MAE": 51.602012634277344,
+    "RMSE": 68.22068786621094,
+    "STD_abs": 44.623931884765625
+  },
+  "fd004_metrics": null,
+  "paths": {
+    "ckpt": "runs\\pure_200_v7_run1\\model_best.pt"
+  }
+}

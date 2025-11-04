@@ -1,0 +1,40 @@
+{
+  "set_id": "200",
+  "version_dir": "v2",
+  "run_index": 1,
+  "units_total": 200,
+  "train_units": 160,
+  "test_units": 40,
+  "seed": 42,
+  "min_cycles": 150,
+  "max_cycles": 380,
+  "calib_mode": "cov",
+  "cov_blend_lam": 0.92,
+  "fd004_train_path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\cmapss_raw\\train_FD004.txt",
+  "fd004_rul_path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\cmapss_raw\\RUL_FD004.txt",
+  "files": {
+    "train": {
+      "path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\training\\200\\v2\\train_1.txt",
+      "sha1": "8a4778ec6ad97328935d08abca97ea74e0f263e0"
+    },
+    "test": {
+      "path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\test\\200\\v2\\test_1.txt",
+      "sha1": "2b6600378555029d1610ea51870ffa618464ab32"
+    },
+    "RUL": {
+      "path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\rul\\200\\v2\\RUL_1.txt",
+      "sha1": "77e08292ac5f4bb017738806133ccf452a59f816"
+    },
+    "pairs_csv": {
+      "path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\training\\200\\v2\\test_rul_pairs_1.csv",
+      "sha1": "340aaf06c1883778f7ca3f28439c8fb711dcb01a"
+    },
+    "train_vib": {
+      "path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\training\\200\\v2\\train_1_vib.csv"
+    },
+    "test_vib": {
+      "path": "C:\\Users\\sjmoo\\OneDrive\\바탕 화면\\turbo jet engine\\data\\test\\200\\v2\\test_1_vib.csv"
+    }
+  },
+  "timestamp": "2025-10-31T05:32:13"
+}

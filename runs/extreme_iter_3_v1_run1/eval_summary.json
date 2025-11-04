@@ -1,0 +1,44 @@
+{
+  "tag": "extreme_iter_3_v1_run1",
+  "feat_cols": [
+    "op1",
+    "op2",
+    "op3",
+    "sensor1",
+    "sensor2",
+    "sensor3",
+    "sensor4",
+    "sensor5",
+    "sensor6",
+    "sensor7",
+    "sensor8",
+    "sensor9",
+    "sensor10",
+    "sensor11",
+    "sensor12",
+    "sensor13",
+    "sensor14",
+    "sensor15",
+    "sensor16",
+    "sensor17",
+    "sensor18",
+    "sensor19",
+    "sensor20",
+    "sensor21",
+    "fe_RMS",
+    "fe_Kurtosis",
+    "fe_Crest",
+    "fe_Entropy"
+  ],
+  "seq_len": 20,
+  "use_vib": true,
+  "synthetic_metrics": {
+    "MAE": 85.703857421875,
+    "RMSE": 96.35379791259766,
+    "STD_abs": 44.032981872558594
+  },
+  "fd004_metrics": null,
+  "paths": {
+    "ckpt": "runs\\extreme_iter_3_v1_run1\\model_best.pt"
+  }
+}

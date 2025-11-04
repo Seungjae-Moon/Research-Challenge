@@ -1,0 +1,6 @@
+USABILITY: borderline (rotor NaN fixed)
+RMS std=0.0275
+rho(op3,RMS)=0.434
+rho(sensor8,RMS)=0.281
+rho(rotor_proxy,RMS)=0.000
+physics_corr_nanfix=True
